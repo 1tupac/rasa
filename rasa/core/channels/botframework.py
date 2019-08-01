@@ -209,12 +209,30 @@ class BotFrameworkInput(InputChannel):
                         postdata["serviceUrl"],
                     )
 
-                    user_msg = UserMessage(
-                        postdata["text"],
-                        out_channel,
-                        postdata["from"]["id"],
-                        input_channel=self.name(),
-                    )
+                    logger.debug(json.dumps(postdata, indent=4, sort_keys=True))
+                    if postdata.get('attachments'):
+                        user_msg = UserMessage(
+                            text=(postdata['text'] if postdata.get('text') 
+                                  else ""),
+                            parse_data={"attachement": postdata['attachments'][0]},
+                            output_channel=out_channel,
+                            sender_id=postdata["from"]["id"],
+                            input_channel=self.name(),
+                        )
+                    elif postdata.get('text'):
+                        user_msg = UserMessage(
+                            postdata["text"],
+                            out_channel,
+                            postdata["from"]["id"],
+                            input_channel=self.name(),
+                        )
+                    else:
+                        user_msg = UserMessage(
+                            json.dumps(postdata["value"]),
+                            out_channel,
+                            postdata["from"]["id"],
+                            input_channel=self.name(),
+                        )
                     await on_new_message(user_msg)
                 else:
                     logger.info("Not received message type")
